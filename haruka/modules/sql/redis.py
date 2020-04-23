@@ -15,6 +15,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import pickle
+
+from telegram import Update, Bot
 from haruka import REDIS
 from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
 
@@ -64,7 +67,26 @@ def get_lang_chat(chatid):
 
 
 def chat_lang_set(chatid, locale):
-    REDIS.set(f'chatlang_{chatid}', locale)
+    REDIS.set(f'chat_admin_{chatid}', locale)
+
+
+# Admin
+def get_chat_admin(chatid):
+    try:
+        rget = pickle.loads(REDIS.get(f'chat_admin_{chatid}'))
+    except Exception:
+        return "false"
+
+    if rget:
+        chat_admin = pickle.loads(REDIS.get(f'chat_admin_{chatid}'))
+        return chat_admin
+    else:
+        return "false"
+
+
+def update_chat_admin(chatid, adminlist):
+    REDIS.set(f'chat_admin_{chatid}', adminlist)
+    REDIS.expire(f'chat_admin_{chatid}', 1800)
 
 
 # Helpers

@@ -15,12 +15,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import pickle
+
 from functools import wraps
 
 from telegram import Chat, ChatMember, Update, Bot
 
 from haruka import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 import haruka.modules.sql.admin_sql as admin_sql
+from haruka.modules.sql.redis import get_chat_admin, update_chat_admin
+
 from haruka.modules.tr_engine.strings import tld
 
 
@@ -31,10 +35,19 @@ def can_delete(chat: Chat, bot_id: int) -> bool:
 def is_user_ban_protected(chat: Chat,
                           user_id: int,
                           member: ChatMember = None) -> bool:
+    if not get_chat_admin(chat.id):
+        administrators = chat.get_administrators()
+        a = []
+        for admin in administrators:
+            user = admin.user
+            a.append(int(user.id))
+        ab = pickle.dumps(a)
+        update_chat_admin(chat.id, ab)
+
     if chat.type == 'private' \
             or user_id in SUDO_USERS \
             or user_id in WHITELIST_USERS \
-            or chat.all_members_are_administrators:
+            or user_id in get_chat_admin(chat.id):
         return True
 
     if not member:
@@ -43,10 +56,19 @@ def is_user_ban_protected(chat: Chat,
 
 
 def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+    if not get_chat_admin(chat.id):
+        administrators = chat.get_administrators()
+        a = []
+        for admin in administrators:
+            user = admin.user
+            a.append(int(user.id))
+        ab = pickle.dumps(a)
+        update_chat_admin(chat.id, ab)
+
     if chat.type == 'private' \
             or user_id in SUDO_USERS \
             or user_id == int(777000) \
-            or chat.all_members_are_administrators:
+            or user_id in get_chat_admin(chat.id):
         return True
 
     if not member:
@@ -57,8 +79,17 @@ def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
 def is_bot_admin(chat: Chat,
                  bot_id: int,
                  bot_member: ChatMember = None) -> bool:
+
+    if not get_chat_admin(chat.id):
+        administrators = chat.get_administrators()
+        a = []
+        for admin in administrators:
+            user = admin.user
+            a.append(user.id)
+        update_chat_admin(chat.id, a)
+
     if chat.type == 'private' \
-            or chat.all_members_are_administrators:
+            or user in get_chat_admin(chat.id):
         return True
 
     if not bot_member:

@@ -31,6 +31,7 @@ from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, can_p
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import admin_sql as sql
+from haruka.modules.sql.redis import get_chat_admin
 from haruka.modules.tr_engine.strings import tld
 
 from haruka.modules.connection import connected
@@ -253,19 +254,25 @@ def invite(bot: Bot, update: Update):
 @run_async
 def adminlist(bot: Bot, update: Update):
     chat = update.effective_chat
-    administrators = update.effective_chat.get_administrators()
     text = tld(chat.id, "admin_list").format(
         update.effective_chat.title
         or tld(chat.id, "common_this_chat").lower())
-    for admin in administrators:
-        user = admin.user
-        name = "[{}](tg://user?id={})".format(user.first_name, user.id)
-        if user.username:
-            esc = escape_markdown("@" + user.username)
-            name = "[{}](tg://user?id={})".format(esc, user.id)
+
+    for admin_id in get_chat_admin(chat.id):
+        print(admin_id)
+
+
+"""
+        r = bot.get_chat_member(chat_id=chat.id, user_id=admin_id)
+        name = "[{}](tg://user?id={})".format(r.user.first_name, r.user.id)
+        if r.user.username:
+            esc = escape_markdown("@" + r.user.username)
+            name = "[{}](tg://user?id={})".format(esc, r.user.id)
         text += "\n - {}".format(name)
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
+"""
 
 
 # TODO: Finalize this command, add automatic message deleting

@@ -11,6 +11,7 @@ RUN apk add --no-cache \
 RUN apk add --no-cache --virtual .build-deps \
     git \
     gcc \
+    g++ \
     musl-dev \
     postgresql-dev \
     libffi-dev \

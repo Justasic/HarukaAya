@@ -1,0 +1,19 @@
+stages:
+  - docker:deploy
+
+variables:
+  DOCKER_IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH"
+
+docker:deploy:
+  image: docker:latest
+  stage: docker:deploy
+  allow_failure: false
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" registry.gitlab.com
+  script:
+    - docker build --pull -t "$DOCKER_IMAGE" .
+    - docker push "registry.gitlab.com/harukanetwork/oss/harukaaya:$CI_COMMIT_BRANCH"
+  only:
+    - dockerstation

@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual .build-deps \
     musl-dev \
     postgresql-dev \
     libffi-dev \
-    libwebp-deb \
+    libwebp-dev \
     zlib-dev \
     imagemagick-dev \
     msttcorefonts-installer \
